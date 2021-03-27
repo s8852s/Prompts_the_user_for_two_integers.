@@ -18,7 +18,6 @@
 #   so the sequence of arrows again, but nicely displayed.
 # - you may use the unicode array for output: ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖']
 
-
 begin
   print('Enter an integer between 1 and 4 and a positive integer: ')
   initial_direction, directions = gets.split()
@@ -30,108 +29,57 @@ begin
   directions = directions.to_i
   if ![1, 2, 3, 4].include?(initial_direction) || directions < 0
       raise ArgumentError
-  elsif initial_direction == 1
-      initial_arrow = "↑"
-      arrow_1 = "↖"
-      arrow_2 = "↗"
-  elsif initial_direction == 2
-      initial_arrow = "→"
-      arrow_1 = "↗"
-      arrow_2 = "↘"
-  elsif initial_direction == 3
-      initial_arrow = "↓"
-      arrow_1 = "↘"
-      arrow_2 = "↙"
-  elsif initial_direction == 4
-      initial_arrow = "←"
-      arrow_1 = "↙"
-      arrow_2 = "↖"
   end
+  initial_arrow, arrow_1, arrow_2 = "↑", "↖", "↗" if initial_direction == 1
+  initial_arrow, arrow_1, arrow_2 = "→", "↗", "↘" if initial_direction == 2
+  initial_arrow, arrow_1, arrow_2 = "↓", "↘", "↙" if initial_direction == 3
+  initial_arrow, arrow_1, arrow_2 = "←", "↙", "↖" if initial_direction == 4
   
-  puts("")
-  sleep 1
+
   puts("Ok, you want to first look this way: #{initial_arrow}")
-  puts("")
-  sleep 1
   puts("In base 3, the second input reads as: #{directions.to_s(base=3)}")
   directions_numbers = directions.to_s(base=3).split(//)
-
+  
   directions_arrow_arr = []
   directions_numbers.each do |number|
-    if number == "0"
-      arrow = initial_arrow
-    elsif number == "1"
-      arrow = arrow_1
-    elsif number == "2"
-      arrow = arrow_2
-    end
+    arrow = initial_arrow if number == "0"
+    arrow = arrow_1 if number == "1"
+    arrow = arrow_2 if number == "2"
     directions_arrow_arr << arrow
   end
   
   puts("So that's how you want to go: #{directions_arrow_arr.join}")
-  puts("") 
-  sleep 1
-  if initial_direction == 2 || initial_direction == 4
+  if [2, 4].include?(initial_direction)
     puts("I don't want to have the sun in my eyes, but by all means have a go at it!")
   else
     puts("Let's go then!")
     routes = []
     i = 0 # number of " "
     directions_arrow_arr.each.with_index do |element, index|
-    if directions_arrow_arr[0] == "↘" || directions_arrow_arr[0] == "↗"
-      if i == 0 && index == 0
-        routes << directions_arrow_arr[index]
-        i += 1
-      elsif directions_arrow_arr[index] == directions_arrow_arr[0] && index != 0 && i >= 0
+      arrow_eq_first = directions_arrow_arr[index] == directions_arrow_arr[0] 
+      arrow_to_right = ["↗", "↘"].include?(directions_arrow_arr[0]) 
+      arrow_eq_init = directions_arrow_arr[index] == initial_arrow 
+      if arrow_eq_init
+        routes << " " * i + initial_arrow
+      elsif ( arrow_eq_first && arrow_to_right && !arrow_eq_init ) || ( !arrow_eq_first && !arrow_to_right && !arrow_eq_init ) 
         routes << " " * i + directions_arrow_arr[index]
         i += 1
-      elsif directions_arrow_arr[index] == initial_arrow && i >= 0
-          routes << " " * i + initial_arrow
-      elsif directions_arrow_arr[index] != initial_arrow && directions_arrow_arr[index] != directions_arrow_arr[0] 
-        if i > 0
-          i -= 1
-          routes << " " * i + directions_arrow_arr[index]
-        elsif i <= 0
-          routes.map! { |route| " " + route }
-          routes << directions_arrow_arr[index]
-          i = 0
-        end
-      end
-  
-      elsif directions_arrow_arr[0] == "↙" || directions_arrow_arr[0] == "↖"
-        if i == 0 && index == 0
-          routes << directions_arrow_arr[index]
-          i = 0
-        elsif directions_arrow_arr[index] == initial_arrow && i >= 0
-            routes << " " * i + initial_arrow
-        elsif directions_arrow_arr[index] == directions_arrow_arr[0] 
-          if i > 0
-            i -= 1
-            routes << " " * i + directions_arrow_arr[index]
-          elsif i <= 0
-            routes.map!{|route| " " + route}
-            routes << directions_arrow_arr[index]
-            i = 0
-          end
-        elsif directions_arrow_arr[index] != initial_arrow && directions_arrow_arr[index] != directions_arrow_arr[0]
-          routes << " " * i + directions_arrow_arr[index] 
-          i += 1
-        end
-      elsif directions_arrow_arr[0] == initial_arrow
-        routes <<  initial_arrow
-      end
+      elsif ( !arrow_eq_first && arrow_to_right && !arrow_eq_init && i > 0 ) || ( arrow_eq_first && !arrow_to_right && !arrow_eq_init && i > 0 )
+        i -= 1
+        routes << " " * i + directions_arrow_arr[index]
+      elsif ( arrow_eq_first && !arrow_to_right && !arrow_eq_init && i <= 0 ) || ( !arrow_eq_first && arrow_to_right && !arrow_eq_init && i <= 0 ) 
+        routes.map! { |route| " " + route }
+        routes << directions_arrow_arr[index]
+        i = 0
+      end            
     end
   
-    if directions_arrow_arr[0] == "↗" || directions_arrow_arr[0] == "↖"
-      routes.reverse.each do |route|
-        puts route
-      end
+    if ["↖", "↗"].include?(directions_arrow_arr[0])
+      routes.reverse.each { |route| puts route }
     else
-      routes.each do |route|
-        puts route
-      end
+      routes.each { |route| puts route }
     end
-  end    
+  end      
 
 rescue ArgumentError => e
   print("Incorrect input, giving up.\n")
